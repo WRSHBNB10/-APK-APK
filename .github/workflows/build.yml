@@ -16,17 +16,17 @@ jobs:
           java-version: "17"
 
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
 
       - name: Build
         run: |
-          GR=$(find project -name gradlew | head -n 1)
-          if [ -z "$GR" ]; then echo "No gradlew found, project structure:"; find project -maxdepth 3; exit 1; fi
-          cd "$(dirname "$GR")"
-          chmod +x gradlew
-          ./gradlew bundleRelease assembleRelease \
+          S=$(find project -name 'settings.gradle*' | head -n 1)
+          cd "$(dirname "$S")"
+          gradle bundleRelease assembleRelease --no-daemon \
             -Pandroid.injected.signing.store.file="$RUNNER_TEMP/release.jks" \
             -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
             -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
